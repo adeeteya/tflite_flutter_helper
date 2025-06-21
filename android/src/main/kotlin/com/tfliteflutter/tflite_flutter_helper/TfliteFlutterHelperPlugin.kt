@@ -41,9 +41,9 @@ const val METHOD_CHANNEL_NAME = "com.tfliteflutter.tflite_flutter_helper:methods
 
 /** TfliteFlutterHelperPlugin */
 class TfliteFlutterHelperPlugin : FlutterPlugin,
-		MethodCallHandler,
-		PluginRegistry.RequestPermissionsResultListener,
-		ActivityAware {
+	MethodCallHandler,
+	PluginRegistry.RequestPermissionsResultListener,
+	ActivityAware {
 
 
 	private val LOG_TAG = "TfLiteFlutterHelperPlugin"
@@ -122,7 +122,7 @@ class TfliteFlutterHelperPlugin : FlutterPlugin,
 
 		val localContext = pluginContext
 		permissionToRecordAudio = localContext != null && ContextCompat.checkSelfPermission(localContext,
-				Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+			Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
 		return permissionToRecordAudio
 
 	}
@@ -136,12 +136,12 @@ class TfliteFlutterHelperPlugin : FlutterPlugin,
 		if (!hasRecordPermission() && localActivity != null) {
 			debugLog("requesting RECORD_AUDIO permission")
 			ActivityCompat.requestPermissions(localActivity,
-					arrayOf(Manifest.permission.RECORD_AUDIO), AUDIO_RECORD_PERMISSION_CODE)
+				arrayOf(Manifest.permission.RECORD_AUDIO), AUDIO_RECORD_PERMISSION_CODE)
 		}
 	}
 
-	override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>?,
-											grantResults: IntArray?): Boolean {
+	override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>,
+											grantResults: IntArray): Boolean {
 		when (requestCode) {
 			AUDIO_RECORD_PERMISSION_CODE -> {
 				if (grantResults != null) {
@@ -169,7 +169,7 @@ class TfliteFlutterHelperPlugin : FlutterPlugin,
 			return
 		}
 		permissionToRecordAudio = ContextCompat.checkSelfPermission(localContext,
-				Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+			Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
 		if (!permissionToRecordAudio) {
 			requestRecordPermission()
 		} else {
@@ -264,9 +264,20 @@ class TfliteFlutterHelperPlugin : FlutterPlugin,
 				recorder.read(audioData!!, 0, mRecorderBufferSize)
 			}
 
-			override fun onPeriodicNotification(recorder: AudioRecord) {
+			override fun onPeriodicNotification(recorder: AudioRecord?) {
+				if (recorder == null) {
+					Log.d(LOG_TAG, "onPeriodicNotification, recorder == null")
+					return
+				}
 				val data = audioData!!
+
+				// https://developer.android.com/reference/android/media/AudioRecord#read(byte[],%20int,%20int)
 				val shortOut = recorder.read(data, 0, mPeriodFrames)
+				if (shortOut < 0) {
+					Log.d(LOG_TAG, "onPeriodicNotification, shortOut = $shortOut")
+					return
+				}
+
 				// https://flutter.io/platform-channels/#codec
 				// convert short to int because of platform-channel's limitation
 				val byteBuffer = ByteBuffer.allocate(shortOut * 2)

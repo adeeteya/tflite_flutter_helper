@@ -1,6 +1,7 @@
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:tflite_flutter_helper/src/common/support_preconditions.dart';
 import 'package:tflite_flutter_helper/src/common/tensor_operator.dart';
+import 'package:tflite_flutter_helper/src/common/tflitetypehelper.dart';
 import 'package:tflite_flutter_helper/src/tensorbuffer/tensorbuffer.dart';
 
 /// Normalizes a [TensorBuffer] with given mean and stddev: output = (input - mean) / stddev.
@@ -125,9 +126,9 @@ class NormalizeOp implements TensorOperator {
     }
     TensorBuffer output;
     if (input.isDynamic) {
-      output = TensorBuffer.createDynamic(TfLiteType.float32);
+      output = TensorBuffer.createDynamic(TfLiteTypeHelper.float32);
     } else {
-      output = TensorBuffer.createFixedSize(shape, TfLiteType.float32);
+      output = TensorBuffer.createFixedSize(shape, TfLiteTypeHelper.float32);
     }
     output.loadList(values, shape: shape);
     return output;
